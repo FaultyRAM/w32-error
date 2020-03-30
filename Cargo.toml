@@ -1,0 +1,15 @@
+[package]
+name = "w32-error"
+version = "0.1.0"
+authors = ["FaultyRAM <316014+FaultyRAM@users.noreply.github.com>"]
+edition = "2018"
+description = "Encapsulates Windows API error codes."
+readme = "README.md"
+repository = "https://github.com/FaultyRAM/w32-error"
+license = "Apache-2.0 OR MIT"
+keywords = ["Windows", "error", "Win32", "winapi"]
+categories = ["no-std", "os::windows-apis"]
+
+[package.metadata.docs.rs]
+default-target = "x86_64-pc-windows-msvc"
+targets = []
