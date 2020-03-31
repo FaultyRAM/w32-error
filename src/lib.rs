@@ -76,3 +76,15 @@ impl W32Error {
         self.0
     }
 }
+
+impl From<DWORD> for W32Error {
+    fn from(other: DWORD) -> Self {
+        Self::new(other)
+    }
+}
+
+impl From<W32Error> for DWORD {
+    fn from(other: W32Error) -> Self {
+        other.into_inner()
+    }
+}
