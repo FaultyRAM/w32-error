@@ -80,6 +80,25 @@ impl W32Error {
         Self(code)
     }
 
+    #[cfg(feature = "std")]
+    #[allow(clippy::cast_sign_loss)]
+    /// Wraps the error code from an `io::Error` if it has one.
+    ///
+    /// ```
+    /// # use w32_error::W32Error;
+    /// use std::io;
+    /// let io_error = io::Error::from_raw_os_error(0);
+    /// let opt = W32Error::from_io_error(&io_error);
+    /// assert_eq!(opt, Some(W32Error::new(0)));
+    /// ```
+    pub fn from_io_error(other: &io::Error) -> Option<Self> {
+        if let Some(code) = other.raw_os_error() {
+            Some(W32Error::new(code as DWORD))
+        } else {
+            None
+        }
+    }
+
     /// Wraps the error code that is currently set for the calling thread.
     ///
     /// This is equivalent to calling the Windows API function `GetLastError` and passing the return
@@ -178,16 +197,11 @@ impl From<W32Error> for DWORD {
 }
 
 #[cfg(feature = "std")]
-#[allow(clippy::cast_sign_loss)]
 impl TryFrom<io::Error> for W32Error {
     type Error = TryFromIoError;
 
     fn try_from(other: io::Error) -> Result<Self, Self::Error> {
-        if let Some(code) = other.raw_os_error() {
-            Ok(W32Error::new(code as DWORD))
-        } else {
-            Err(TryFromIoError)
-        }
+        Self::from_io_error(&other).ok_or(TryFromIoError)
     }
 }
 
