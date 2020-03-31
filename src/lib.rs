@@ -197,3 +197,6 @@ impl Display for TryFromIoError {
         f.write_str("the given `io::Error` did not contain a Windows API error code")
     }
 }
+
+#[cfg(feature = "std")]
+impl Error for TryFromIoError {}
