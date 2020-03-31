@@ -190,3 +190,10 @@ impl TryFrom<io::Error> for W32Error {
         }
     }
 }
+
+#[cfg(feature = "std")]
+impl Display for TryFromIoError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.write_str("the given `io::Error` did not contain a Windows API error code")
+    }
+}
