@@ -38,3 +38,16 @@ use winapi::shared::minwindef::DWORD;
 #[repr(transparent)]
 /// A Windows API error.
 pub struct W32Error(DWORD);
+
+impl W32Error {
+    /// Wraps an arbitrary error code.
+    ///
+    /// ```ignore
+    /// # use w32_error::W32Error;
+    /// let error = W32Error::new(0);
+    /// println!("{}", error);
+    /// ```
+    pub const fn new(code: DWORD) -> Self {
+        Self(code)
+    }
+}
