@@ -27,6 +27,7 @@
     unused_lifetimes,
     unused_results
 )]
+#![allow(clippy::must_use_candidate)]
 
 #[cfg(not(target_os = "windows"))]
 compile_error!("w32-error only supports Windows-based targets");
@@ -63,5 +64,15 @@ impl W32Error {
     /// ```
     pub fn last_thread_error() -> Self {
         Self::new(unsafe { GetLastError() })
+    }
+
+    /// Returns the underlying error code wrapped by a `W32Error`.
+    ///
+    /// ```
+    /// # use w32_error::W32Error;
+    /// assert_eq!(W32Error::new(0).into_inner(), 0);
+    /// ```
+    pub const fn into_inner(self) -> DWORD {
+        self.0
     }
 }
