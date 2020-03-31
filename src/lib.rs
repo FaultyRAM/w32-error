@@ -32,7 +32,22 @@
 #[cfg(not(target_os = "windows"))]
 compile_error!("w32-error only supports Windows-based targets");
 
-use winapi::{shared::minwindef::DWORD, um::errhandlingapi::GetLastError};
+use core::{
+    char,
+    fmt::{self, Display, Formatter, Write},
+    hint, mem, ptr,
+};
+use winapi::{
+    shared::minwindef::DWORD,
+    um::{
+        errhandlingapi::GetLastError,
+        winbase::{
+            FormatMessageW, FORMAT_MESSAGE_FROM_SYSTEM, FORMAT_MESSAGE_IGNORE_INSERTS,
+            FORMAT_MESSAGE_MAX_WIDTH_MASK,
+        },
+        winnt::WCHAR,
+    },
+};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[must_use = "this `W32Error` is unhandled"]
@@ -43,7 +58,7 @@ pub struct W32Error(DWORD);
 impl W32Error {
     /// Wraps an arbitrary error code.
     ///
-    /// ```ignore
+    /// ```
     /// # use w32_error::W32Error;
     /// let error = W32Error::new(0);
     /// println!("{}", error);
@@ -57,7 +72,7 @@ impl W32Error {
     /// This is equivalent to calling the Windows API function `GetLastError` and passing the return
     /// value to `W32Error::new`.
     ///
-    /// ```ignore
+    /// ```
     /// # use w32_error::W32Error;
     /// let error = W32Error::last_thread_error();
     /// println!("{}", error);
@@ -74,6 +89,55 @@ impl W32Error {
     /// ```
     pub const fn into_inner(self) -> DWORD {
         self.0
+    }
+}
+
+impl Display for W32Error {
+    #[allow(clippy::cast_possible_truncation)]
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        const MAX_CHARACTERS: usize = 1024;
+        // According to the MSDN documentation for `FormatMessage`, `wide_buffer` cannot be larger
+        // than 64KB.
+        debug_assert!(mem::size_of::<[WCHAR; MAX_CHARACTERS]>() <= 65536);
+        let mut wide_buffer = [WCHAR::default(); MAX_CHARACTERS];
+        let len = unsafe {
+            FormatMessageW(
+                FORMAT_MESSAGE_FROM_SYSTEM
+                    | FORMAT_MESSAGE_IGNORE_INSERTS
+                    | FORMAT_MESSAGE_MAX_WIDTH_MASK,
+                ptr::null(),
+                self.0,
+                0,
+                wide_buffer.as_mut_ptr(),
+                MAX_CHARACTERS as DWORD,
+                ptr::null_mut(),
+            ) as usize
+        };
+        if len == 0 {
+            // `FormatMessage` failed. Write out the error code itself as a last resort.
+            f.write_fmt(format_args!("{:#08X}", self.0))
+        } else {
+            // Strip leading and trailing whitespace from the error message.
+            // If `FormatMessage` is instructed to strip inserts and manual line breaks from the
+            // message, they may be replaced with whitespace.
+            let mut char_buffer = [char::default(); MAX_CHARACTERS];
+            let char_msg = &mut char_buffer[..len];
+            let wide_msg = &wide_buffer[..len];
+            char::decode_utf16(wide_msg.iter().copied())
+                .map(|res| res.unwrap_or(char::REPLACEMENT_CHARACTER))
+                .zip(char_msg.iter_mut())
+                .for_each(|(src, dst)| *dst = src);
+            if let Some(a) = char_msg.iter().position(|c| !c.is_whitespace()) {
+                let b = char_msg
+                    .iter()
+                    .rposition(|c| !c.is_whitespace())
+                    .unwrap_or_else(|| unsafe { hint::unreachable_unchecked() });
+                for &c in &char_msg[a..=b] {
+                    f.write_char(c)?;
+                }
+            }
+            Ok(())
+        }
     }
 }
 
