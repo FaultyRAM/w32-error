@@ -1,6 +1,6 @@
 [package]
 name = "w32-error"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["FaultyRAM <316014+FaultyRAM@users.noreply.github.com>"]
 edition = "2018"
 description = "Encapsulates Windows API error codes."

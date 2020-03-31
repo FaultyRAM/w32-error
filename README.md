@@ -23,14 +23,14 @@ By default, w32-error is configured for a `#![no_std]` environment:
 
 ```toml
 [dependencies]
-w32-error = "^0.1.0"
+w32-error = "^1.0.0"
 ```
 
 Alternatively, features that require libstd can be manually enabled:
 
 ```toml
 [dependencies]
-w32-error = { version = "^0.1.0", features = ["std"] }
+w32-error = { version = "^1.0.0", features = ["std"] }
 ```
 
 For more details, see the [API documentation](https://docs.rs/w32-error).
