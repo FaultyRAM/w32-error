@@ -30,3 +30,11 @@
 
 #[cfg(not(target_os = "windows"))]
 compile_error!("w32-error only supports Windows-based targets");
+
+use winapi::shared::minwindef::DWORD;
+
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[must_use = "this `W32Error` is unhandled"]
+#[repr(transparent)]
+/// A Windows API error.
+pub struct W32Error(DWORD);

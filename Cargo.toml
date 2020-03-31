@@ -10,6 +10,9 @@ license = "Apache-2.0 OR MIT"
 keywords = ["Windows", "error", "Win32", "winapi"]
 categories = ["no-std", "os::windows-apis"]
 
+[target.'cfg(target_os = "windows")'.dependencies]
+winapi = { version = "^0.3.0", features = ["errhandlingapi"] }
+
 [package.metadata.docs.rs]
 default-target = "x86_64-pc-windows-msvc"
 targets = []
