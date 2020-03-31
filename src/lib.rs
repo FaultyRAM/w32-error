@@ -43,7 +43,7 @@ use std_crate::{
     hint, mem, ptr,
 };
 #[cfg(feature = "std")]
-use std_crate::{error::Error, io};
+use std_crate::{convert::TryFrom, error::Error, io};
 use winapi::{
     shared::minwindef::DWORD,
     um::{
@@ -61,6 +61,12 @@ use winapi::{
 #[repr(transparent)]
 /// A Windows API error.
 pub struct W32Error(DWORD);
+
+#[cfg(feature = "std")]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[must_use = "this `TryFromIoError` is unhandled"]
+/// A failure to convert an `io::Error` into a `W32Error`.
+pub struct TryFromIoError;
 
 impl W32Error {
     /// Wraps an arbitrary error code.
@@ -168,5 +174,19 @@ impl From<DWORD> for W32Error {
 impl From<W32Error> for DWORD {
     fn from(other: W32Error) -> Self {
         other.into_inner()
+    }
+}
+
+#[cfg(feature = "std")]
+#[allow(clippy::cast_sign_loss)]
+impl TryFrom<io::Error> for W32Error {
+    type Error = TryFromIoError;
+
+    fn try_from(other: io::Error) -> Result<Self, Self::Error> {
+        if let Some(code) = other.raw_os_error() {
+            Ok(W32Error::new(code as DWORD))
+        } else {
+            Err(TryFromIoError)
+        }
     }
 }
