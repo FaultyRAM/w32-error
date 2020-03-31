@@ -37,6 +37,8 @@ use core as std_crate;
 #[cfg(feature = "std")]
 use std as std_crate;
 
+#[cfg(feature = "std")]
+use std_crate::error::Error;
 use std_crate::{
     char,
     fmt::{self, Display, Formatter, Write},
@@ -145,6 +147,9 @@ impl Display for W32Error {
         }
     }
 }
+
+#[cfg(feature = "std")]
+impl Error for W32Error {}
 
 impl From<DWORD> for W32Error {
     fn from(other: DWORD) -> Self {
