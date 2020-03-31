@@ -71,6 +71,8 @@ pub struct TryFromIoError;
 impl W32Error {
     /// Wraps an arbitrary error code.
     ///
+    /// # Examples
+    ///
     /// ```
     /// # use w32_error::W32Error;
     /// let error = W32Error::new(0);
@@ -83,6 +85,8 @@ impl W32Error {
     #[cfg(feature = "std")]
     #[allow(clippy::cast_sign_loss)]
     /// Wraps the error code from an `io::Error` if it has one.
+    ///
+    /// # Examples
     ///
     /// ```
     /// # use w32_error::W32Error;
@@ -104,6 +108,8 @@ impl W32Error {
     /// This is equivalent to calling the Windows API function `GetLastError` and passing the return
     /// value to `W32Error::new`.
     ///
+    /// # Examples
+    ///
     /// ```
     /// # use w32_error::W32Error;
     /// let error = W32Error::last_thread_error();
@@ -114,6 +120,8 @@ impl W32Error {
     }
 
     /// Returns the underlying error code wrapped by a `W32Error`.
+    ///
+    /// # Examples
     ///
     /// ```
     /// # use w32_error::W32Error;
