@@ -31,7 +31,7 @@
 #[cfg(not(target_os = "windows"))]
 compile_error!("w32-error only supports Windows-based targets");
 
-use winapi::shared::minwindef::DWORD;
+use winapi::{shared::minwindef::DWORD, um::errhandlingapi::GetLastError};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[must_use = "this `W32Error` is unhandled"]
@@ -49,5 +49,19 @@ impl W32Error {
     /// ```
     pub const fn new(code: DWORD) -> Self {
         Self(code)
+    }
+
+    /// Wraps the error code that is currently set for the calling thread.
+    ///
+    /// This is equivalent to calling the Windows API function `GetLastError` and passing the return
+    /// value to `W32Error::new`.
+    ///
+    /// ```ignore
+    /// # use w32_error::W32Error;
+    /// let error = W32Error::last_thread_error();
+    /// println!("{}", error);
+    /// ```
+    pub fn last_thread_error() -> Self {
+        Self::new(unsafe { GetLastError() })
     }
 }
