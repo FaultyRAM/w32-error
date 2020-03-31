@@ -37,13 +37,13 @@ use core as std_crate;
 #[cfg(feature = "std")]
 use std as std_crate;
 
-#[cfg(feature = "std")]
-use std_crate::error::Error;
 use std_crate::{
     char,
     fmt::{self, Display, Formatter, Write},
     hint, mem, ptr,
 };
+#[cfg(feature = "std")]
+use std_crate::{error::Error, io};
 use winapi::{
     shared::minwindef::DWORD,
     um::{
@@ -150,6 +150,14 @@ impl Display for W32Error {
 
 #[cfg(feature = "std")]
 impl Error for W32Error {}
+
+#[cfg(feature = "std")]
+impl From<W32Error> for io::Error {
+    #[allow(clippy::cast_possible_wrap)]
+    fn from(other: W32Error) -> Self {
+        io::Error::from_raw_os_error(other.into_inner() as i32)
+    }
+}
 
 impl From<DWORD> for W32Error {
     fn from(other: DWORD) -> Self {
