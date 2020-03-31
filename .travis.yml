@@ -7,6 +7,9 @@ rust:
   - stable
   - beta
   - nightly
+env:
+  - CARGO_FEATURES=""
+  - CARGO_FEATURES="std"
 matrix:
   allow_failures:
     - rust: beta
@@ -15,7 +18,7 @@ matrix:
 install:
   - rustup component add clippy rustfmt
 script:
-  - cargo clippy --tests
-  - cargo test
-  - cargo doc
+  - cargo clippy --tests --features %CARGO_FEATURES%
+  - cargo test --features %CARGO_FEATURES%
+  - cargo doc --features %CARGO_FEATURES%
   - cargo fmt --all -- --check

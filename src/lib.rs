@@ -7,7 +7,7 @@
 
 //! Encapsulates Windows API error codes.
 
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 #![deny(
     clippy::all,
     clippy::pedantic,
@@ -32,7 +32,12 @@
 #[cfg(not(target_os = "windows"))]
 compile_error!("w32-error only supports Windows-based targets");
 
-use core::{
+#[cfg(not(feature = "std"))]
+use core as std_crate;
+#[cfg(feature = "std")]
+use std as std_crate;
+
+use std_crate::{
     char,
     fmt::{self, Display, Formatter, Write},
     hint, mem, ptr,
