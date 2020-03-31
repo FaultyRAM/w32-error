@@ -5,7 +5,57 @@
 // <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your option. This file may not be copied,
 // modified, or distributed except according to those terms.
 
-//! Encapsulates Windows API error codes.
+//! # w32-error
+//!
+//! w32-error provides the `W32Error` type for wrapping Windows API error codes. A `W32Error` has
+//! the same layout as a `DWORD`, and implements `Display` for printing human-readable error
+//! messages. When the `std` crate feature is enabled, `W32Error` also implements `Error`, and can
+//! be converted to or from an `io::Error` via the standard `TryFrom`/`TryInto`
+//! (`io::Error` => `W32Error`) and `From`/`Into` (`W32Error` => `io::Error`) traits.
+//!
+//! ## Examples
+//!
+//! A `W32Error` can be constructed from an arbitrary `DWORD`:
+//!
+//! ```should_panic
+//! use w32_error::W32Error;
+//!
+//! fn main() -> Result<(), W32Error> {
+//!     Err(W32Error::new(0))
+//! }
+//! ```
+//!
+//! The `W32Error::last_thread_error` method constructs a `W32Error` using the last-error code set
+//! for the calling thread:
+//!
+//! ```ignore
+//! use std::io;
+//! use w32_error::W32Error;
+//!
+//! fn windows_api_call() -> Result<(), W32Error> {
+//!     let result = SomeWindowsAPIFunction();
+//!     if result == 0 { // Zero indicates failure.
+//!         Err(W32Error::last_thread_error())
+//!     } else {
+//!         // ...
+//!     }
+//! }
+//!
+//! fn main() -> io::Result<()> {
+//!     windows_api_call()?; // Converts `W32Error` to `io::Error` on failure.
+//!     Ok(())
+//! }
+//! ```
+//!
+//! `W32Error` implements `Display` via calling `FormatMessageW`:
+//!
+//! ```
+//! use w32_error::W32Error;
+//!
+//! fn main() {
+//!     let error = W32Error::new(0);
+//!     println!("{}", error);
+//! }
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(
@@ -27,7 +77,7 @@
     unused_lifetimes,
     unused_results
 )]
-#![allow(clippy::must_use_candidate)]
+#![allow(clippy::needless_doctest_main, clippy::must_use_candidate)]
 
 #[cfg(not(target_os = "windows"))]
 compile_error!("w32-error only supports Windows-based targets");
