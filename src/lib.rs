@@ -214,9 +214,8 @@ impl Display for W32Error {
             let char_msg = &mut char_buffer[..len];
             let wide_msg = &wide_buffer[..len];
             char::decode_utf16(wide_msg.iter().copied())
-                .map(|res| res.unwrap_or(char::REPLACEMENT_CHARACTER))
                 .zip(char_msg.iter_mut())
-                .for_each(|(src, dst)| *dst = src);
+                .for_each(|(src, dst)| *dst = src.unwrap_or(char::REPLACEMENT_CHARACTER));
             if let Some(a) = char_msg.iter().position(|c| !c.is_whitespace()) {
                 let b = char_msg
                     .iter()
