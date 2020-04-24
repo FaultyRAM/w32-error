@@ -183,13 +183,12 @@ impl W32Error {
 }
 
 impl Display for W32Error {
-    #[allow(clippy::cast_possible_truncation)]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        const MAX_CHARACTERS: usize = 1024;
+        const MAX_CHARACTERS: u16 = 1024;
         // According to the MSDN documentation for `FormatMessage`, `wide_buffer` cannot be larger
         // than 64KB.
-        debug_assert!(mem::size_of::<[WCHAR; MAX_CHARACTERS]>() <= 65536);
-        let mut wide_buffer = [WCHAR::default(); MAX_CHARACTERS];
+        debug_assert!(mem::size_of::<[WCHAR; MAX_CHARACTERS as _]>() <= 65536);
+        let mut wide_buffer = [WCHAR::default(); MAX_CHARACTERS as _];
         let len = unsafe {
             FormatMessageW(
                 FORMAT_MESSAGE_FROM_SYSTEM
@@ -199,7 +198,7 @@ impl Display for W32Error {
                 self.0,
                 0,
                 wide_buffer.as_mut_ptr(),
-                MAX_CHARACTERS as DWORD,
+                MAX_CHARACTERS.into(),
                 ptr::null_mut(),
             ) as usize
         };
@@ -210,7 +209,7 @@ impl Display for W32Error {
             // Strip leading and trailing whitespace from the error message.
             // If `FormatMessage` is instructed to strip inserts and manual line breaks from the
             // message, they may be replaced with whitespace.
-            let mut char_buffer = [char::default(); MAX_CHARACTERS];
+            let mut char_buffer = [char::default(); MAX_CHARACTERS as _];
             let char_msg = &mut char_buffer[..len];
             let wide_msg = &wide_buffer[..len];
             char::decode_utf16(wide_msg.iter().copied())
